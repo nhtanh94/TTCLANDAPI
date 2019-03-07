@@ -26,23 +26,23 @@ namespace AutoParking.Controllers
         [Route("api/v1/list-card")]
         public HttpResponseMessage GetListCard(string blockCode)
         {
-            if (IsBodyNull(blockCode))
-            {
-                return ResponseFail(Constants.BODY_NOT_FOUND);
-            }
-            if (!CheckCode.checkcode(blockCode))
-            {
-                return ResponseFail(Constants.CODEERROR);
-            }
-            try
-            {
-                var model = new CardViewModel();
-                return ResponseSuccess(model.GetResponseCard(blockCode));
-            }
-            catch
-            {
-                return ResponseFail(Constants.FAILD);
-            }           
+            //if (IsBodyNull(blockCode))
+            //{
+            //    return ResponseFail(Constants.BODY_NOT_FOUND);
+            //}
+            //if (!CheckCode.checkcode(blockCode))
+            //{
+            //    return ResponseFail(Constants.CODEERROR);
+            //}
+            //try
+            //{
+            //    var model = new CardViewModel();
+            //    return ResponseSuccess(model.GetResponseCard(blockCode));
+            //}
+            //catch
+            //{
+            //    return ResponseFail(Constants.FAILD);
+            //}           
             
         }
         //Có thẻ chênh lệnh giữa thẻ vé tháng và thẻ vãng lai đã tạo vé tháng
