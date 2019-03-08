@@ -246,11 +246,15 @@ namespace AutoParking.Controllers
                         return ResponseFail(Constants.MSG_NO_CARD);
                     }
                       car = (db.Cars.Where(x=>x.ID == request.ID).OrderByDescending(x=>x.TimeStart).Take(1)).SingleOrDefault();
-                     if(car.TimeEnd == null)
+                     if(car != null)
                     {
-                        car.TimeEnd = DateTime.Now;
-                        db.SaveChanges();
+                        if (car.TimeEnd == null)
+                        {
+                            car.TimeEnd = DateTime.Now;
+                            db.SaveChanges();
+                        }
                     }
+                    
                     ticketMonth = (db.TicketMonths.Where(x => x.ID == request.ID).OrderByDescending(x => x.RowID).Take(1)).SingleOrDefault();
                     if(ticketMonth == null || ticketMonth.Status == 2)
                     {                                    

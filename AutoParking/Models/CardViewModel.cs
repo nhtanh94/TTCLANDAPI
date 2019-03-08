@@ -116,6 +116,7 @@ namespace AutoParking.Models
                 {
                     M1 = db.SmartCards.Where(x=> x.DayUnlimit <= requestCard.toDate).ToList();
                     ticketMonthResults1 = db.Database.SqlQuery<TicketMonthResult>(sql2).ToList();
+                    ticketMonthResultstoDate1 = db.Database.SqlQuery<TicketMonthResult>(sql3).ToList();
 
 
                 }
@@ -123,6 +124,7 @@ namespace AutoParking.Models
                 {
                     M2 = db.SmartCards.Where(x => x.DayUnlimit <= requestCard.toDate).ToList();
                     ticketMonthResults2 = db.Database.SqlQuery<TicketMonthResult>(sql2).ToList();
+                    ticketMonthResultstoDate2 = db.Database.SqlQuery<TicketMonthResult>(sql3).ToList();
                 }
 
                 cardReport.Total = M1.Count() + M2.Count();
