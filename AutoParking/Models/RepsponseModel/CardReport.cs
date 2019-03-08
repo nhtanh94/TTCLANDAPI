@@ -8,8 +8,6 @@ namespace AutoParking.Models.RepsponseModel
     public class CardReport
     {
         public int Total { get; set; }
-        public int TotalUsing { get; set; }
-        public int TotalBlock { get; set; }
         public int TotalGuest { get; set; }
         public int TotalTicketMonth { get; set; }
         public int TotalTicketMonthUsing { get; set; }

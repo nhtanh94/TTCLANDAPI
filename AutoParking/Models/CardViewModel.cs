@@ -122,8 +122,6 @@ namespace AutoParking.Models
                 }
 
                 cardReport.Total = M1.Count() + M2.Count();
-                cardReport.TotalUsing = M1.Count(x => x.Using == true) + M2.Count(x => x.Using == true); ;
-                cardReport.TotalBlock = cardReport.Total - cardReport.TotalUsing;
                 cardReport.TotalTicketMonth = ticketMonthResults1.Count() + ticketMonthResults2.Count();
                 cardReport.TotalGuest = cardReport.Total - cardReport.TotalTicketMonth;
                 cardReport.TotalStopUsingTicketMonth = ticketMonthResults1.Count(x => x.Status == 3) + ticketMonthResults2.Count(x => x.Status == 3);

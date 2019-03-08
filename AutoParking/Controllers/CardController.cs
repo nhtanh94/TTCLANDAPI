@@ -126,7 +126,7 @@ namespace AutoParking.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("api/v1/list-card-report")]
-        public HttpResponseMessage DeleteCard([FromBody]RequestCardReport requestCard)
+        public HttpResponseMessage GetListCardReport([FromBody]RequestCardReport requestCard)
         {
             try
             {
