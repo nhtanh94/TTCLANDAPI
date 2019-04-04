@@ -101,6 +101,7 @@ namespace AutoParking.Models
             try
             {
                 CardReport cardReport = new CardReport();
+            
                 string sql2 = string.Format("SELECT  * from TicketMonth s left  JOIN (select ID, MAX(RowID) as 'RowID' from TicketMonth GROUP BY ID) t on s.ID = t.ID  where t.RowID = s.RowID and s.ProcessDate between '{0}' and '{1}'", requestCard.fromDate.ToString("yyyy-MM-dd"), requestCard.toDate.ToString("yyyy-MM-dd"));
                 string sql3 = string.Format("SELECT  * from TicketMonth s left  JOIN (select ID, MAX(RowID) as 'RowID' from TicketMonth GROUP BY ID) t on s.ID = t.ID  where t.RowID = s.RowID and s.ProcessDate <='{0}'",requestCard.toDate.ToString("yyyy-MM-dd"));
 
@@ -114,7 +115,7 @@ namespace AutoParking.Models
 
                 using (DB db = new DB("M1"))
                 {
-                    M1 = db.SmartCards.Where(x=> x.DayUnlimit <= requestCard.toDate).ToList();
+                    M1 = db.SmartCards.ToList();
                     ticketMonthResults1 = db.Database.SqlQuery<TicketMonthResult>(sql2).ToList();
                     ticketMonthResultstoDate1 = db.Database.SqlQuery<TicketMonthResult>(sql3).ToList();
 
@@ -122,17 +123,16 @@ namespace AutoParking.Models
                 }
                 using (DB db = new DB("M2"))
                 {
-                    M2 = db.SmartCards.Where(x => x.DayUnlimit <= requestCard.toDate).ToList();
+                    M2 = db.SmartCards.ToList();
                     ticketMonthResults2 = db.Database.SqlQuery<TicketMonthResult>(sql2).ToList();
                     ticketMonthResultstoDate2 = db.Database.SqlQuery<TicketMonthResult>(sql3).ToList();
                 }
 
                 cardReport.Total = M1.Count() + M2.Count();
-                cardReport.TotalTicketMonth = ticketMonthResults1.Count() + ticketMonthResults2.Count();
-                cardReport.TotalGuest = cardReport.Total - (ticketMonthResultstoDate1.Count() + ticketMonthResultstoDate2.Count());
+                cardReport.TotalTicketMonthUsing =(int)(ticketMonthResultstoDate1.Select(x => x.Status == 0 || x.Status == 1).Count()) + (int)(ticketMonthResultstoDate2.Select(x => x.Status == 0 || x.Status == 1).Count());
+                cardReport.TotalCreateNew = ticketMonthResults1.Count(x => x.Status == 0 || x.Status == 1) + ticketMonthResults2.Count(x => x.Status == 0 || x.Status ==1);
                 cardReport.TotalStopUsingTicketMonth = ticketMonthResults1.Count(x => x.Status == 3) + ticketMonthResults2.Count(x => x.Status == 3);
                 cardReport.TotalBlackTicketMonth = ticketMonthResults1.Count(x => x.Status == 4) + ticketMonthResults2.Count(x => x.Status == 4);
-                cardReport.TotalTicketMonthUsing = cardReport.TotalTicketMonth - (cardReport.TotalStopUsingTicketMonth + cardReport.TotalBlackTicketMonth);
 
                 return cardReport;
             }
