@@ -69,7 +69,7 @@ namespace AutoParking.Models
             List<ResponeCardCreateTicketMonth> listCard;
             using (DB db = new DB(code))
             {
-                 string sql = "select s.Identify, s.ID, case s.Using when 1 then N'Đang sử dụng' else N'Đã khóa' end as Using, p.Name, case ISNULL(t.ID, 'NULL') when 'NULL' then N'Chưa tạo' else N'Đã tạo' end as TicketMonth, (select top 1 amount from part where id = type) as Amount from SmartCard s left join (select t.ID from TicketMonth t, (select ID, MAX(RowID) as 'RowID' from TicketMonth group by ID) tt where t.RowID = tt.RowID and t.Status in (0,1,3)) t on s.ID = t.ID, Part p where s.Type = p.ID  order by s.Identify";
+                 string sql = "select s.Identify, s.ID, case s.Using when 1 then N'Đang sử dụng' else N'Đã khóa' end as Using, p.Name, case ISNULL(t.ID, 'NULL') when 'NULL' then N'Chưa tạo' else N'Đã tạo' end as TicketMonth, (select top 1 amount from part where id = type) as Amount from SmartCard s left join (select t.ID from TicketMonth t, (select ID, MAX(RowID) as 'RowID' from TicketMonth group by ID) tt where t.RowID = tt.RowID and t.Status in (0,1,3)) t on s.ID = t.ID, Part p where s.Type = p.ID and s.Using = 1  order by s.Identify";
                  listCard = db.Database.SqlQuery<ResponeCardCreateTicketMonth>(sql).ToList();
                
             }
@@ -102,9 +102,9 @@ namespace AutoParking.Models
             {
                 CardReport cardReport = new CardReport();
             
-                string sql2 = string.Format("SELECT  * from TicketMonth s left  JOIN (select ID, MAX(RowID) as 'RowID' from TicketMonth GROUP BY ID) t on s.ID = t.ID  where t.RowID = s.RowID and s.ProcessDate between '{0}' and '{1}'", requestCard.fromDate.ToString("yyyy-MM-dd"), requestCard.toDate.ToString("yyyy-MM-dd"));
-                string sql3 = string.Format("SELECT  * from TicketMonth s left  JOIN (select ID, MAX(RowID) as 'RowID' from TicketMonth GROUP BY ID) t on s.ID = t.ID  where t.RowID = s.RowID and s.ProcessDate <='{0}'",requestCard.toDate.ToString("yyyy-MM-dd"));
-
+                string sql2 = string.Format("SELECT  * from TicketMonth s left  JOIN (select ID, MAX(RowID) as 'RowID' from TicketMonth GROUP BY ID) t on s.ID = t.ID  where t.RowID = s.RowID and status <> 2 and s.ProcessDate between '{0}' and '{1}'", requestCard.fromDate.ToString("yyyy-MM-dd"), requestCard.toDate.ToString("yyyy-MM-dd"));
+                string sql3 = string.Format("SELECT  * from TicketMonth s left  JOIN (select ID, MAX(RowID) as 'RowID' from TicketMonth GROUP BY ID) t on s.ID = t.ID  where t.RowID = s.RowID and status <> 2 and s.ProcessDate <='{0}'", requestCard.toDate.ToString("yyyy-MM-dd"));
+                string sql4 = "select *,(select top 1 name from part where id = idpart) as partName from ticketmonth where rowid in( select stt from (select max(rowid) as stt,id from ticketmonth  group by id) t) and status in(0,1,3,4)";
                 List<string> report = new List<string>();
                 List<SmartCard> M1 = new List<SmartCard>();
                 List<SmartCard> M2 = new List<SmartCard>();
@@ -112,13 +112,15 @@ namespace AutoParking.Models
                 List<TicketMonthResult> ticketMonthResultstoDate1 = new List<TicketMonthResult>();
                 List<TicketMonthResult> ticketMonthResults2 = new List<TicketMonthResult>();
                 List<TicketMonthResult> ticketMonthResultstoDate2 = new List<TicketMonthResult>();
+                List<TicketMonthResult> ticketMonthM1 = new List<TicketMonthResult>();
+                List<TicketMonthResult> ticketMonthM2 = new List<TicketMonthResult>();
 
                 using (DB db = new DB("M1"))
                 {
                     M1 = db.SmartCards.ToList();
                     ticketMonthResults1 = db.Database.SqlQuery<TicketMonthResult>(sql2).ToList();
                     ticketMonthResultstoDate1 = db.Database.SqlQuery<TicketMonthResult>(sql3).ToList();
-
+                    ticketMonthM1 =  db.Database.SqlQuery<TicketMonthResult>(sql4).ToList();
 
                 }
                 using (DB db = new DB("M2"))
@@ -126,13 +128,14 @@ namespace AutoParking.Models
                     M2 = db.SmartCards.ToList();
                     ticketMonthResults2 = db.Database.SqlQuery<TicketMonthResult>(sql2).ToList();
                     ticketMonthResultstoDate2 = db.Database.SqlQuery<TicketMonthResult>(sql3).ToList();
+                    ticketMonthM2 = db.Database.SqlQuery<TicketMonthResult>(sql4).ToList();
                 }
-
-                cardReport.Total = M1.Count() + M2.Count();
-                cardReport.TotalTicketMonthUsing =(int)(ticketMonthResultstoDate1.Select(x => x.Status == 0 || x.Status == 1).Count()) + (int)(ticketMonthResultstoDate2.Select(x => x.Status == 0 || x.Status == 1).Count());
-                cardReport.TotalCreateNew = ticketMonthResults1.Count(x => x.Status == 0 || x.Status == 1) + ticketMonthResults2.Count(x => x.Status == 0 || x.Status ==1);
+                cardReport.TotalTicketGuestUsingNow = (M1.Count(x => x.Using == true) - ticketMonthM1.Count()) + (M2.Count(x => x.Using == true) - ticketMonthM2.Count());
+                cardReport.TotalTicketMonth = ticketMonthResultstoDate1.Count() + ticketMonthResultstoDate2.Count();              
                 cardReport.TotalStopUsingTicketMonth = ticketMonthResults1.Count(x => x.Status == 3) + ticketMonthResults2.Count(x => x.Status == 3);
                 cardReport.TotalBlackTicketMonth = ticketMonthResults1.Count(x => x.Status == 4) + ticketMonthResults2.Count(x => x.Status == 4);
+                cardReport.TotalTicketMonthUsing = cardReport.TotalTicketMonth - (cardReport.TotalStopUsingTicketMonth + cardReport.TotalBlackTicketMonth);
+                cardReport.TotalCreateNew = ticketMonthResults1.Count(x => x.Status == 0 || x.Status == 1) + ticketMonthResults2.Count(x => x.Status == 0 || x.Status == 1);
 
                 return cardReport;
             }
