@@ -10,7 +10,7 @@ using AutoParking.Entities;
 
 namespace AutoParking.Controllers
 {
-    //[Authorize]
+    [Authorize]
     public class BaseController : ApiController
     {
         //protected DB db = null;
